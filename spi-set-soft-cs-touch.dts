@@ -1,0 +1,34 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "allwinner,sun50i-h6";
+
+        fragment@0 {
+            target-path = "/aliases";
+            __overlay__ {
+                spi0 = "/soc/spi@5010000";
+                spi1 = "/soc/spi@5011000";
+            };
+        };
+ 
+        fragment@2 { 
+            target = <&r_pio>;
+			__overlay__ {
+				spi1_cs1_pin: spi1_cs1_pin {
+				pins = "PA8"; /* - real use PL8 but... error in calculate pin number 360!!!!*/
+				function = "gpio_out";
+				output-high;
+			};
+		};
+	};
+
+        fragment@3 {
+			target = <&spi1>;
+			__overlay__ {
+				pinctrl-names = "default", "default";
+                pinctrl-1 = < &spi1_cs1_pin>;
+                cs-gpios = <0>, <&r_pio 0 8 0>; /* PL8 */
+		};
+	};
+};

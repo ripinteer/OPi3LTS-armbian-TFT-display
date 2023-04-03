@@ -1,0 +1,71 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "xunlong,orangepi-3-lts","allwinner,sun50i-h6";
+
+        fragment@0 {
+            target-path = "/aliases";
+            __overlay__ {
+                spi0 = "/soc/spi@5010000";
+                spi1 = "/soc/spi@5011000";
+            };
+        };
+
+        fragment@1 {
+            target = <&r_pio>;
+            __overlay__ {
+                spi1_cs1_pin: spi1_cs1_pin {
+                    pins = "PA8"; /* - real use PL8 but... error in calculate pin number 360!!!!*/
+                    function = "gpio_out";
+                    output-high;
+                };
+            };
+        };
+
+        fragment@2 {
+            target = <&spi1>;
+            __overlay__ {
+                pinctrl-names = "default", "default";
+                pinctrl-1 = < &spi1_cs1_pin>;
+                cs-gpios = <0>, <&r_pio 0 8 0>; /* PL8 */
+                status = "okay";
+                debug=<0>;
+                #address-cells = <1>;
+                #size-cells = <0>;
+                spidev@1 {
+                    reg = <1>; /* Chip Select 1 */
+                    compatible = "spidev";
+                    spi-max-frequency = <12000000>;
+                    status = "disabled";
+                };
+            };
+        };
+
+        fragment@3 {
+            target = <&spi1>;
+            __overlay__ {
+                #address-cells = <1>;
+                #size-cells = <0>;
+                cs-gpios = <0>, <&r_pio 0 8 0>; /* PL8 */
+                status = "okay";
+                xpt2046: xpt2046@1 {
+                    compatible = "ti,ads7846";
+                    reg = <1>;
+                    status ="okay";
+                    spi-max-frequency = <1000000>;
+                    interrupts = <0 10 2>;          /* high-to-low edge triggered */
+                    interrupt-parent = <&r_pio>;   /* PL10<-----> TP_IRQ= PD24 -irq not possible!*/
+                    pendown-gpio = <&r_pio 0 10 0>;
+                    ti,keep-vref-on = <1>;
+                    ti,x-min = /bits/ 16 <00>;
+                    ti,x-max = /bits/ 16 <0xFFF>;
+                    ti,y-min = /bits/ 16 <00>;
+                    ti,y-max = /bits/ 16 <0xFFF>;
+                    ti,x-plate-ohms = /bits/ 16 <60>;
+                    ti,pressure-max = /bits/ 16 <255>;
+                    ti,swap-xy = <0>;
+                };
+            };
+        };
+};
